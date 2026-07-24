@@ -16,5 +16,6 @@ my_*
 /person_pb2.py
 /datasets
 venv
+.venv
 
 */datasets/*
