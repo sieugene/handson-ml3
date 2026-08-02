@@ -10,24 +10,20 @@ def parseHeaders(parts):
 	for i, part in enumerate(parts):
 		if part:
 			key, *values = part.split(":", 1)
-			if '\t' in key:
-				try:
+			if part.startswith((" ", "\t")):
+				if headers:
 					headerLastIndex = len(headers) - 1
 					nextHeaderValues = [*headers[headerLastIndex]["values"], key]
 					headers[headerLastIndex] = {
 						"key": headers[headerLastIndex]["key"],
 						"values": ["\n".join(nextHeaderValues)]
 					}
-				except Exception as e:
-					print("e", e)
 			else:
 				headers.append({
 					"key": key,
-					"values": [*values]
+					"values": values
 				})
 	return headers
-
-
 class EmailParser:
 	def __init__(self, filepath):
 		self.filepath = filepath
