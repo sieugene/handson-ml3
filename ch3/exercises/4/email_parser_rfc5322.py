@@ -1,32 +1,17 @@
 
-import email
 from pathlib import Path
-from pprint import pprint
-
-
-
-def parseHeaders(parts):
-	headers = []
-	for i, part in enumerate(parts):
-		if part:
-			key, *values = part.split(":", 1)
-			if part.startswith((" ", "\t")):
-				if headers:
-					headerLastIndex = len(headers) - 1
-					nextHeaderValues = [*headers[headerLastIndex]["values"], key]
-					headers[headerLastIndex] = {
-						"key": headers[headerLastIndex]["key"],
-						"values": ["\n".join(nextHeaderValues)]
-					}
-			else:
-				headers.append({
-					"key": key,
-					"values": values
-				})
-	return headers
 class EmailParser:
 	def __init__(self, filepath):
 		self.filepath = filepath
+		self.lines = []
+		self.body_start_index = None
+
+		self.lines = self.read().read_text().splitlines()
+		for i, line in enumerate(self.lines):
+			# empty line marks the start of mail content
+			if line == '':
+				self.body_start_index = i + 1
+				break
 
 	def read(self):
 		file_path = Path(self.filepath)
@@ -37,57 +22,35 @@ class EmailParser:
 			return None
 
 	def parse_headers(self):
-		file = self.read()
-		if file:
-			content = file.read_text()
-			lines = content.splitlines()
-			empty_line_index = None
-			for i, line in enumerate(lines):
-				# empty line marks the start of mail content
-				if line == '':
-					empty_line_index = i
-					break
+		headers = []
+		parts = self.lines[:self.body_start_index]
 
-			body_end_index = empty_line_index + 1
-			# Take all content before the pointer
-			body_lines = lines[:body_end_index]
-			original_part_before_content = "\n".join(body_lines)
+		for _, part in enumerate(parts):
+			if not part:
+				continue
+			if part.startswith((" ", "\t")):
+				if headers:
+					headers[-1]["values"][0] = "\n" + part
+				continue
+			key, *values = part.split(":")
+			if len(key.split()) == 1:
+				headers.append({"key": key, "values": values})
+		return headers
 
-			return parseHeaders(body_lines)
-		else:
-			print("File doesn't exist")
-			return None
-
+	def getKeys(self):
+		headers = self.parse_headers()
+		keys = []
+		for header in headers:
+			keys.append(header["key"])
+		return keys
+	
 	def parse_body(self):
-		file = self.read()
-		if file:
-			content = file.read_text()
-			lines = content.splitlines()
-			empty_line_index = None
-			for i, line in enumerate(lines):
-				# empty line marks the start of mail content
-				if line == '':
-					empty_line_index = i
-					break
+		body_lines = self.lines[self.body_start_index:]
+		body = "\n".join(body_lines)
+		return body
 
-			body_start_index = empty_line_index + 1
-			# Take all content from the pointer
-			body_lines = lines[body_start_index:]
-			body = "\n".join(body_lines)
-			return body
-		else:
-			print("File doesn't exist")
-			return None
 		
 
 emailCustom = EmailParser("./data/downloads/easy_ham/00001.7c53336b37003a9286aba55d2945844c")
-# print(email.parse_body())
-pprint(emailCustom.parse_headers())
-
-# Another way use a pyhon default lib
-msg = email.message_from_file(open("./data/downloads/easy_ham/00001.7c53336b37003a9286aba55d2945844c", "r"))
-# print(msg['References'])
-# print(msg["From"])
-# print(msg["Received"])
-# print(msg.get_payload())
-# print("lib\n",msg.keys())
+print(emailCustom.parse_body())
+print(emailCustom.getKeys())
