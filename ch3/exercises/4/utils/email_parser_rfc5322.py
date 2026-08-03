@@ -51,6 +51,6 @@ class EmailParser:
 
 		
 
-emailCustom = EmailParser("./data/downloads/easy_ham/00001.7c53336b37003a9286aba55d2945844c")
-print(emailCustom.parse_body())
-print(emailCustom.getKeys())
+# emailCustom = EmailParser("./data/downloads/easy_ham/00001.7c53336b37003a9286aba55d2945844c")
+# print(emailCustom.parse_body())
+# print(emailCustom.getKeys())
