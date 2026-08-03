@@ -2,7 +2,6 @@ from pathlib import Path
 from urllib import request
 import tarfile
 
-
 BASE_URL = "https://spamassassin.apache.org/old/publiccorpus"
 
 FILES = [
@@ -27,7 +26,10 @@ def download_corpus(dataset_dir="data"):
     for filename in FILES:
         url = f"{BASE_URL}/{filename}"
         archive_path = downloads_dir / filename
-
+        if Path(archive_path).exists():
+            print(f"Already downloaded, skip {filename}...")
+            continue
+    
         print(f"Downloading {filename}...")
         request.urlretrieve(url, archive_path)
 
@@ -35,7 +37,4 @@ def download_corpus(dataset_dir="data"):
         with tarfile.open(archive_path) as tar:
             tar.extractall(downloads_dir)
 
-    print("Done!")
-
-
-download_corpus()
+    print("download_corpus is done!")
