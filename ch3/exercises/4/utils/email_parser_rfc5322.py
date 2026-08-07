@@ -8,12 +8,13 @@ class Header(TypedDict):
 
 
 class EmailParser:
-    def __init__(self, filepath):
+    def __init__(self, filepath, isSpam):
+        self.isSpam = isSpam
         self.filepath = filepath
         self.lines = []
         self.body_start_index = None
 
-        self.lines = self.__read().read_text().splitlines()
+        self.lines = self.__read().read_text(encoding='utf-8', errors="ignore").splitlines()
         for i, line in enumerate(self.lines):
             # empty line marks the start of mail content
             if line == "":
@@ -62,7 +63,7 @@ class EmailParser:
                 break
 
         if not findValues:
-            raise ValueError("Header not found")
+            return None
 
         return findValues
 
@@ -78,4 +79,5 @@ class EmailParser:
             "to": self.getData("To"),
             "subject": self.getData("Subject"),
             "headers": self.headers,
+            "isSpam": self.isSpam
         }

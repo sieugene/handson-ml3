@@ -19,4 +19,9 @@ venv
 .venv
 
 */datasets/*
+
+
+# ch3
 ch3/exercises/4/data/*
+ch3/exercises/4/*.csv
+data/*
