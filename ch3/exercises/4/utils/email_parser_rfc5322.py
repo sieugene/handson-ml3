@@ -79,5 +79,6 @@ class EmailParser:
             "to": self.getData("To"),
             "subject": self.getData("Subject"),
             "headers": self.headers,
-            "isSpam": self.isSpam
+            "isSpam": self.isSpam,
+            "file": self.filepath.name
         }
