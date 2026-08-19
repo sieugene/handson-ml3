@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Матричное умножение — наглядно</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --surface: #ffffff;
+    --border: #e2e0d8;
+    --border-strong: #c9c6ba;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6a63;
+    --text-muted: #9a988e;
+    --accent-bg: #e6f1fb;
+    --accent-border: #378add;
+    --accent-text: #0c447c;
+    --accent-strong: #185fa5;
+    --mono: 'SF Mono', 'Consolas', 'Menlo', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 40px 20px;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .wrap {
+    max-width: 720px;
+    width: 100%;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 500;
+    text-align: center;
+    margin: 0 0 8px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin: 0 0 40px;
+    line-height: 1.6;
+  }
+
+  .stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .matrix-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .matrix-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--mono);
+  }
+
+  .matrix {
+    display: grid;
+    gap: 6px;
+    background: var(--surface);
+    padding: 10px;
+    border-radius: 10px;
+    border: 0.5px solid var(--border);
+  }
+
+  .matA { grid-template-columns: repeat(3, 44px); }
+  .matB { grid-template-columns: repeat(2, 44px); }
+  .matC { grid-template-columns: repeat(2, 44px); }
+
+  .cell {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: var(--mono);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text-primary);
+    transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  }
+
+  .cell.result {
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+  }
+
+  .cell.result:hover {
+    transform: scale(1.05);
+    border-color: var(--accent-border);
+  }
+
+  .cell.highlight {
+    background: var(--accent-bg);
+    color: var(--accent-text);
+  }
+
+  .cell.result.highlight {
+    background: var(--accent-strong);
+    color: #ffffff;
+    border-color: var(--accent-strong);
+  }
+
+  .operator {
+    font-size: 22px;
+    color: var(--text-muted);
+    font-weight: 300;
+  }
+
+  .formula-box {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 24px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--text-primary);
+    min-height: 24px;
+  }
+
+  .formula-box .eq {
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+
+  .hint {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 16px;
+  }
+
+  .footer-note {
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 0.5px solid var(--border);
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  code {
+    font-family: var(--mono);
+    background: var(--bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Матричное умножение</h1>
+  <p class="subtitle">Кликни на ячейку результата C — увидишь, какая строка A<br>и какой столбец B в ней участвуют.</p>
+
+  <div class="stage">
+    <div class="matrix-block">
+      <span class="matrix-label">A (2×3)</span>
+      <div class="matrix matA" id="matA"></div>
+    </div>
+
+    <span class="operator">×</span>
+
+    <div class="matrix-block">
+      <span class="matrix-label">B (3×2)</span>
+      <div class="matrix matB" id="matB"></div>
+    </div>
+
+    <span class="operator">=</span>
+
+    <div class="matrix-block">
+      <span class="matrix-label">C (2×2)</span>
+      <div class="matrix matC" id="matC"></div>
+    </div>
+  </div>
+
+  <div class="formula-box" id="formula"></div>
+  <p class="hint">Строка A и столбец B перемножаются поэлементно, произведения складываются</p>
+
+  <div class="footer-note">
+    Правило: <code>C[i][j]</code> = скалярное произведение строки <code>i</code> матрицы A и столбца <code>j</code> матрицы B.<br>
+    Число столбцов A должно совпадать с числом строк B — иначе умножение невозможно.
+  </div>
+</div>
+
+<script>
+  const A = [[1, 2, 3], [4, 5, 6]];
+  const B = [[7, 8], [9, 10], [11, 12]];
+
+  function computeCell(row, col) {
+    let sum = 0;
+    const terms = [];
+    for (let k = 0; k < A[row].length; k++) {
+      sum += A[row][k] * B[k][col];
+      terms.push(A[row][k] + '×' + B[k][col]);
+    }
+    return { sum, terms };
+  }
+
+  const matA = document.getElementById('matA');
+  const matB = document.getElementById('matB');
+  const matC = document.getElementById('matC');
+  const formula = document.getElementById('formula');
+
+  A.forEach((r, i) => r.forEach((v, j) => {
+    const d = document.createElement('div');
+    d.id = 'a-' + i + '-' + j;
+    d.className = 'cell';
+    d.textContent = v;
+    matA.appendChild(d);
+  }));
+
+  B.forEach((r, i) => r.forEach((v, j) => {
+    const d = document.createElement('div');
+    d.id = 'b-' + i + '-' + j;
+    d.className = 'cell';
+    d.textContent = v;
+    matB.appendChild(d);
+  }));
+
+  for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
+      const d = document.createElement('div');
+      const { sum } = computeCell(i, j);
+      d.id = 'c-' + i + '-' + j;
+      d.className = 'cell result';
+      d.textContent = sum;
+      d.addEventListener('click', () => highlight(i, j));
+      matC.appendChild(d);
+    }
+  }
+
+  function resetStyles() {
+    document.querySelectorAll('.cell').forEach(el => el.classList.remove('highlight'));
+  }
+
+  function highlight(row, col) {
+    resetStyles();
+    for (let k = 0; k < 3; k++) {
+      document.getElementById('a-' + row + '-' + k).classList.add('highlight');
+      document.getElementById('b-' + k + '-' + col).classList.add('highlight');
+    }
+    document.getElementById('c-' + row + '-' + col).classList.add('highlight');
+
+    const { sum, terms } = computeCell(row, col);
+    formula.innerHTML = 'C[' + row + '][' + col + '] = ' + terms.join(' + ') + ' = <span class="eq">' + sum + '</span>';
+  }
+
+  highlight(0, 0);
+</script>
+
+</body>
+</html>
